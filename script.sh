@@ -16,9 +16,27 @@ read -p "Enter the Subscription ID: " subscriptionId
 
 # List available resource groups
 echo "Available Resource Groups:"
-az group list --subscription $subscriptionId --query "[].{Name:name}" --output table
-read -p "Enter the Resource Group Name: " resourceGroupName
+#az group list --subscription $subscriptionId --query "[].{Name:name}" --output table
+#read -p "Enter the Resource Group Name: " resourceGroupName
+resourceGroups=($(az group list --subscription $subscriptionId --query "[].{Name:name}" --output tsv))
 
+for i in "${!resourceGroups[@]}"; do
+  echo "$(($i + 1)): ${resourceGroups[$i]}"
+done
+
+read -p "Enter the number corresponding to the desired Resource Group (e.g., 1 for the first): " resourceGroupNumber
+
+# Validate the user's input for the resource group selection
+if ! [[ "$resourceGroupNumber" =~ ^[0-9]+$ ]]; then
+  echo "Invalid input. Please enter a numeric value."
+  exit 1
+fi
+
+# Check if the chosen resource group number is within the valid range
+if ((resourceGroupNumber < 1 || resourceGroupNumber > ${#resourceGroups[@]})); then
+  echo "Invalid selection. Please choose a valid number."
+  exit 1
+fi
 # Generate a timestamp
 timestamp=$(date +'%m-%d-%Y-%H-%M-%S')
 
